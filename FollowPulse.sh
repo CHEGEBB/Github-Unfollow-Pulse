@@ -1,190 +1,169 @@
 #!/bin/bash
 
-function get_all_pages {
-    local url=$1
-    local token=$2
-    local result=()
-    
-    while [ "$url" ]; do
-        response=$(curl -s -H "Authorization: token $token" "$url")
-        if [ $? -ne 0 ]; then
-            echo "Failed to retrieve data from $url. Exiting."
-            exit 1
+# Function to display colored output
+function print_color {
+    case $2 in
+        "success") echo -e "\e[32m$1\e[0m";;
+        "error") echo -e "\e[31m$1\e[0m";;
+        *) echo $1;;
+    esac
+}
+
+# Function to fetch GitHub followers with pagination
+function get_followers {
+    username=$1
+    token=$2
+    page=1
+    followers=""
+
+    while true; do
+        data=$(curl -s -H "Authorization: token $token" "https://api.github.com/users/$username/followers?page=$page")
+        page_followers=$(echo "$data" | jq -r '.[].login')
+
+        if [ -z "$page_followers" ]; then
+            break
         fi
 
-        # Check for errors in the JSON response
-        if [[ "$response" == *"message"* ]]; then
-            echo "Error in JSON response: $response. Exiting."
-            exit 1
+        followers="$followers$page_followers "
+        ((page++))
+    done
+
+    echo "$followers"
+}
+
+# Function to fetch GitHub users you follow with pagination
+function get_following {
+    username=$1
+    token=$2
+    page=1
+    following=""
+
+    while true; do
+        data=$(curl -s -H "Authorization: token $token" "https://api.github.com/users/$username/following?page=$page")
+        page_following=$(echo "$data" | jq -r '.[].login')
+
+        if [ -z "$page_following" ]; then
+            break
         fi
 
-        result+=( "$response" )
-        url=$(echo "$response" | grep -oP '"next": "\K[^"]+' | sed 's/\\//g')
-    done
-    
-    echo "${result[@]}"
-}
-
-function loading_animation {
-    local message=$1
-    local delay=0.1
-    local animation="|/-\\"
-
-    for ((i = 0; i < 10; i++)); do
-        sleep $delay
-        printf "\r%s %s" "$message" "${animation:i % 4:1}"
-    done
-    printf "\r"
-}
-
-function colored_print {
-    local message=$1
-    local color=$2
-
-    echo -e "${color}${message}\033[0m"
-}
-
-function check_github_relationships {
-    local username=$1
-    local token=$2
-
-    loading_animation "Loading followers and following..."
-    
-    followers_url="https://api.github.com/users/$username/followers?per_page=100"
-    followers=( $(get_all_pages "$followers_url" "$token") )
-
-    following_url="https://api.github.com/users/$username/following?per_page=100"
-    following=( $(get_all_pages "$following_url" "$token") )
-
-    not_followed_back=()
-    for user in "${following[@]}"; do
-        login=$(echo "$user" | grep -oP '"login": "\K[^"]+')
-        if ! grep -q "\"login\": \"$login\"" <<< "${followers[@]}"; then
-            not_followed_back+=( "$login" )
-        fi
+        following="$following$page_following "
+        ((page++))
     done
 
-    echo -e "\nPeople you follow but who don't follow you back:"
-    for user in "${not_followed_back[@]}"; do
-        colored_print "$user" "\033[91m"
-    done
-
-    echo "${not_followed_back[@]}"
+    echo "$following"
 }
 
+# Function to unfollow a user
+function unfollow_user {
+    username=$1
+    token=$2
+
+    # Perform the unfollow operation
+    response=$(curl -s -X DELETE -H "Authorization: token $token" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/user/following/$username")
+
+    if [ -z "$(echo "$response" | jq -r '.message')" ]; then
+        print_color "Successfully unfollowed $username." "success"
+    elif [ "$(echo "$response" | jq -r '.message')" == "Not Found" ] || [ "$(echo "$response" | jq -r '.message')" == "404 Not Found" ]; then
+        print_color "Failed to unfollow $username. User not found or already unfollowed." "error"
+    else
+        print_color "Error unfollowing $username. $(echo "$response" | jq -r '.message')" "error"
+    fi
+}
+
+# Function to unfollow users who don't follow back
 function unfollow_non_followers {
-    local username=$1
-    local token=$2
-    local not_followed_back=("${!3}")
+    username=$1
+    token=$2
+    json_file=$3
 
-    echo -e "\nUnfollowing people who don't follow you back:"
-    if [ ${#not_followed_back[@]} -eq 0 ]; then
-        colored_print "No one to unfollow." "\033[92m"
+    if [ ! -f "$json_file" ]; then
+        print_color "Error: JSON file $json_file not found." "error"
+        return
+    fi
+
+    # Read the list of usernames from the JSON file
+    non_followers=$(cat "$json_file" | jq -r '.[]')
+
+    if [ -z "$non_followers" ]; then
+        print_color "Error: Empty list of usernames in $json_file." "error"
+        return
+    fi
+
+    # Process each user one by one
+    for user in $non_followers; do
+        unfollow_user "$user" "$token"
+    done
+}
+
+# Function to display users you follow but who don't follow you back
+function display_non_followers {
+    username=$1
+    token=$2
+
+    followers=$(get_followers "$username" "$token")
+    following=$(get_following "$username" "$token")
+
+    non_followers=$(comm -23 <(echo "$following" | tr ' ' '\n' | sort) <(echo "$followers" | sort))
+
+    if [ -z "$non_followers" ]; then
+        print_color "You follow everyone who follows you. No one is left out!" "success"
     else
-        for user in "${not_followed_back[@]}"; do
-            loading_animation "Attempting to unfollow $user..."
-            # Uncomment the following line to perform the unfollow action
-             curl -X DELETE -H "Authorization: token $token" "https://api.github.com/user/following/$user"
-            echo -e "\nUnfollowed $user"
-        done
+        echo -e "\n\e[36mUsers You Follow But Don't Follow You Back:\e[0m"
+        echo "$non_followers"
+        read -p "Do you want to remove these users one by one? (y/n): " remove_users
+
+        if [ "$remove_users" == "y" ]; then
+            # Create a JSON file to store usernames
+            json_file="unfollow_list.json"
+            echo "$non_followers" | jq -R -s -c 'split("\n")' > "$json_file"
+
+            print_color "Usernames stored in $json_file. Now unfollowing users..." "success"
+            unfollow_non_followers "$username" "$token" "$json_file"
+        else
+            print_color "Exiting without removing users. Have a great day!" "success"
+        fi
     fi
 }
 
-function follow_likely_followers {
-    local username=$1
-    local token=$2
+# Main script
+clear
+echo -e "\e[34mGitHub Follower Manager\e[0m"
 
-    loading_animation "Checking likely followers..."
+read -p "Enter your GitHub username: " username
+read -s -p "Enter your GitHub token: " token
 
-    followers_url="https://api.github.com/users/$username/followers?per_page=100"
-    followers=( $(get_all_pages "$followers_url" "$token") )
-
-    following_url="https://api.github.com/users/$username/following?per_page=100"
-    following=( $(get_all_pages "$following_url" "$token") )
-
-    not_followed_back=()
-    for user in "${following[@]}"; do
-        login=$(echo "$user" | grep -oP '"login": "\K[^"]+')
-        if ! grep -q "\"login\": \"$login\"" <<< "${followers[@]}"; then
-            not_followed_back+=( "$login" )
-        fi
-    done
-
-    likely_followers=()
-    for user in "${followers[@]}"; do
-        followers_count=$(echo "$user" | grep -oP '"followers": \K[^,]+')
-        following_count=$(echo "$user" | grep -oP '"following": \K[^,]+')
-        if [ "$followers_count" -gt 100 ] && [ "$following_count" -lt 100 ]; then
-            likely_followers+=( "$user" )
-        fi
-    done
-
-    echo -e "\nFollowing people who are likely to follow back:"
-    if [ ${#likely_followers[@]} -eq 0 ]; then
-        colored_print "No likely followers found." "\033[92m"
-    else
-        for user in "${likely_followers[@]}"; do
-            login=$(echo "$user" | grep -oP '"login": "\K[^"]+')
-            loading_animation "Attempting to follow $login..."
-            # Uncomment the following line to perform the follow action
-             curl -X PUT -H "Authorization: token $token" "https://api.github.com/user/following/$login"
-            echo -e "\nFollowed $login"
-        done
-    fi
-}
-
-# ASCII art
-echo -e "\033[1m"
-cat << "EOF"
-  _____   ___   _      _       ___   __    __         ____  __ __  _     _____   ___ 
- |     | /   \ | |    | |     /   \ |  |__|  |       |    \|  |  || |   / ___/  /  _]
- |   __||     || |    | |    |     ||  |  |  | _____ |  o  )  |  || |  (   \_  /  [_ 
- |  |_  |  O  || |___ | |___ |  O  ||  |  |  ||     ||   _/|  |  || |___\__  ||    _]
- |   _] |     ||     ||     ||     ||  `  '  ||_____||  |  |  :  ||     /  \ ||   [_ 
- |  |   |     ||     ||     ||     | \      /        |  |  |     ||     \    ||     |
- |__|    \___/ |_____||_____| \___/   \_/\_/         |__|   \__,_||_____|\___||_____|
-                                                                                    
-EOF
-echo -e "\033[0m"
-
-# Main loop
 while true; do
-    echo -e "\nFollowPulse - GitHub Relationship Manager"
-    echo "1. Check Followers and Following"
-    echo "2. List People Not Following You Back"
-    echo "3. Unfollow Those Not Following You Back"
-    echo "4. Follow People Likely to Follow Back"
-    echo "5. Exit"
+    clear
+    echo -e "\e[34mGitHub Follower Manager\e[0m"
 
-    read -p "Enter your choice (1-5): " choice
+    echo -e "\e[33m1. Show GitHub Followers\e[0m"
+    echo -e "\e[33m2. Show Users You Follow\e[0m"
+    echo -e "\e[33m3. Show Users You Follow But Don't Follow You Back\e[0m"
+    echo -e "\e[33m4. Exit\e[0m"
+
+    read -p "Select an option (1/2/3/4): " choice
 
     case $choice in
         1)
-            read -p "Enter your GitHub username: " github_username
-            read -p "Enter your GitHub personal access token: " token
-            check_github_relationships "$github_username" "$token"
+            echo -e "\n\e[36mGitHub Followers:\e[0m"
+            get_followers "$username" "$token"
             ;;
         2)
-            read -p "Enter your GitHub username: " github_username
-            read -p "Enter your GitHub personal access token: " token
-            not_followed_back=($(check_github_relationships "$github_username" "$token"))
+            echo -e "\n\e[36mUsers You Follow:\e[0m"
+            get_following "$username" "$token"
             ;;
         3)
-            read -p "Enter your GitHub username: " github_username
-            read -p "Enter your GitHub personal access token: " token
-            unfollow_non_followers "$github_username" "$token" not_followed_back
+            display_non_followers "$username" "$token"
             ;;
         4)
-            read -p "Enter your GitHub username: " github_username
-            read -p "Enter your GitHub personal access token: " token
-            follow_likely_followers "$github_username" "$token"
-            ;;
-        5)
-            echo "Exiting. Goodbye!"
+            print_color "Exiting. Have a great day!" "success"
             exit 0
             ;;
         *)
-            colored_print "Invalid choice. Please enter a number from 1 to 5." "\033[91m"
+            print_color "Invalid option. Please select a valid option." "error"
+            sleep 2
             ;;
     esac
+
+    read -p "Press enter to continue..."
 done
