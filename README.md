@@ -28,6 +28,8 @@ Open a terminal.
 Navigate to the directory containing the Python script.
 Run the script using the following command:
 ```bash
+pip install -r requirements.txt
+
 python3 FollowPulse.py
 ```
 Follow the on-screen prompts to interact with the FollowPulse GitHub Relationship Manager.
