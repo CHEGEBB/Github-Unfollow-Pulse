@@ -38,20 +38,14 @@ def check_github_relationships(username, token):
         print("\nPeople you follow but who don't follow you back:")
         for user in not_followed_back:
             colored_print(user["login"], Fore.RED)
+        
+        return not_followed_back
     except Exception as e:
         print(f"Error checking GitHub relationships: {e}")
+        return []
 
-def unfollow_non_followers(username, token):
+def unfollow_non_followers(username, token, not_followed_back):
     try:
-        loading_animation("Checking non-followers...")
-        followers_url = f"https://api.github.com/users/{username}/followers?per_page=100"
-        followers = get_all_pages(followers_url, token)
-
-        following_url = f"https://api.github.com/users/{username}/following?per_page=100"
-        following = get_all_pages(following_url, token)
-
-        not_followed_back = [user for user in following if user["login"] not in [follower["login"] for follower in followers]]
-
         print("\nUnfollowing people who don't follow you back:")
         if not not_followed_back:
             colored_print("No one to unfollow.", Fore.GREEN)
@@ -60,7 +54,7 @@ def unfollow_non_followers(username, token):
                 user_to_unfollow = user["login"]
                 loading_animation(f"Attempting to unfollow {user_to_unfollow}...")
                 # Uncomment the following line to perform the unfollow action
-                # requests.delete(f"https://api.github.com/user/following/{user_to_unfollow}", headers={"Authorization": f"token {token}"})
+                requests.delete(f"https://api.github.com/user/following/{user_to_unfollow}", headers={"Authorization": f"token {token}"})
                 print(f"Unfollowed {user_to_unfollow}")
     except Exception as e:
         print(f"Error unfollowing non-followers: {e}")
@@ -108,11 +102,11 @@ while True:
     elif choice == "2":
         github_username = input("Enter your GitHub username: ")
         token = input("Enter your GitHub personal access token: ")
-        unfollow_non_followers(github_username, token)
+        not_followed_back = check_github_relationships(github_username, token)
     elif choice == "3":
         github_username = input("Enter your GitHub username: ")
         token = input("Enter your GitHub personal access token: ")
-        unfollow_non_followers(github_username, token)
+        unfollow_non_followers(github_username, token, not_followed_back)
     elif choice == "4":
         github_username = input("Enter your GitHub username: ")
         token = input("Enter your GitHub personal access token: ")
