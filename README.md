@@ -62,6 +62,9 @@ Navigate to the directory containing the Shell script.
 Run the script using the following command:
 Make script executable:
 ```bash
+ sudo apt-get install curl
+ sudo apt-get install jq
+
 chmod +x FollowPulse.sh
 ```
 ```bash
