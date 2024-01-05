@@ -25,7 +25,14 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
 ## How to Run 🏃
 Make sure you have Python installed on your system.
 Open a terminal.
+## clone repo
+```bash
+https://github.com/CHEGEBB/Github-Unfollow-Pulse.git
+```
 Navigate to the directory containing the Python script.
+```bash
+cd Github-Unfollow-Pulse.git
+```
 Run the script using the following command:
 ```bash
 pip install -r requirements.txt
@@ -40,8 +47,16 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
 ### How to Install Ruby on Linux 🐧
 
 1. Open a terminal.
+ ## clone repo
+```bash
+https://github.com/CHEGEBB/Github-Unfollow-Pulse.git
+```
+Navigate to the directory containing the Python script.
+```bash
+cd Github-Unfollow-Pulse.git
+```
 
-2. Update the package list:
+3. Update the package list:
    ```bash
    sudo apt update
    ```
@@ -52,6 +67,12 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
    ruby --version
    ```
 Install the required gems by running:
+```bash
+gem install octokit --user-install
+```
+```bash
+gem install tty-prompt --user-install
+```
 ```bash
 gem install octokit tty-prompt pastel
 ```
@@ -64,7 +85,16 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
 ## Shell 🐚
 ## How to Run 🏃
 Open a terminal.
-Navigate to the directory containing the Shell script.
+## clone repo
+```bash
+https://github.com/CHEGEBB/Github-Unfollow-Pulse.git
+```
+Navigate to the directory containing the Python script.
+
+```bash
+cd Github-Unfollow-Pulse.git
+```
+
 Run the script using the following command:
 Make script executable:
 ```bash
