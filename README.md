@@ -33,6 +33,17 @@ python3 FollowPulse.py
 Follow the on-screen prompts to interact with the FollowPulse GitHub Relationship Manager.
 ## Ruby 💎
 ## How to Install and Run 🏃
+### How to Install Ruby on Linux 🐧
+
+1. Open a terminal.
+
+2. Update the package list:
+   ```bash
+   sudo apt update
+   sudo apt install ruby-full
+
+   ```
+   
 Install Ruby on your system. Visit Ruby's official website for instructions.
 Open a terminal.
 Install the required gems by running:
