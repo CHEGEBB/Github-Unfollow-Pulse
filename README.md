@@ -29,6 +29,8 @@ Navigate to the directory containing the Python script.
 Run the script using the following command:
 ```bash
 pip install -r requirements.txt
+```
+```bash
 
 python3 FollowPulse.py
 ```
@@ -42,7 +44,11 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
 2. Update the package list:
    ```bash
    sudo apt update
+   ```
+   ```bash
    sudo apt install ruby-full
+   ```
+   ```bash
    ruby --version
    ```
 Install the required gems by running:
@@ -63,7 +69,11 @@ Run the script using the following command:
 Make script executable:
 ```bash
  sudo apt-get install curl
+```
+```bash
  sudo apt-get install jq
+```
+```bash
 
 chmod +x FollowPulse.sh
 ```
