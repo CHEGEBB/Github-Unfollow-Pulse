@@ -41,11 +41,8 @@ Follow the on-screen prompts to interact with the FollowPulse GitHub Relationshi
    ```bash
    sudo apt update
    sudo apt install ruby-full
-
+   ruby --version
    ```
-   
-Install Ruby on your system. Visit Ruby's official website for instructions.
-Open a terminal.
 Install the required gems by running:
 ```bash
 gem install octokit tty-prompt pastel
