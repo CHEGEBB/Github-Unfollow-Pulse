@@ -2,8 +2,6 @@ import requests
 import time
 from colorama import Fore, Style
 
-# Install colorama using: pip install colorama
-
 def get_all_pages(url, token):
     result = []
     while url:
@@ -83,6 +81,18 @@ def follow_likely_followers(username, token):
                 print(f"Followed {user_to_follow}")
     except Exception as e:
         print(f"Error following likely followers: {e}")
+
+# ASCII art
+print(r"""
+  _____   ___   _      _       ___   __    __         ____  __ __  _     _____   ___ 
+ |     | /   \ | |    | |     /   \ |  |__|  |       |    \|  |  || |   / ___/  /  _]
+ |   __||     || |    | |    |     ||  |  |  | _____ |  o  )  |  || |  (   \_  /  [_ 
+ |  |_  |  O  || |___ | |___ |  O  ||  |  |  ||     ||   _/|  |  || |___\__  ||    _]
+ |   _] |     ||     ||     ||     ||  `  '  ||_____||  |  |  :  ||     /  \ ||   [_ 
+ |  |   |     ||     ||     ||     | \      /        |  |  |     ||     \    ||     |
+ |__|    \___/ |_____||_____| \___/   \_/\_/         |__|   \__,_||_____|\___||_____|
+                                                                                    
+""")
 
 # Main loop
 while True:
