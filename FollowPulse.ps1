@@ -1,5 +1,3 @@
-# PowerShell FollowPulse without GUI
-
 function Check-GitHubRelationships {
     param (
         [string]$githubUsername,
@@ -13,7 +11,6 @@ function Check-GitHubRelationships {
         $followingUrl = "https://api.github.com/users/$githubUsername/following?per_page=100"
         $following = Invoke-RestMethod -Uri $followingUrl -Headers @{ Authorization = "token $token" }
 
-        # Get all followers and following by handling pagination
         while ($followers.Links.'next' -ne $null) {
             $nextPageUrl = $followers.Links.'next'
             $nextPage = Invoke-RestMethod -Uri $nextPageUrl -Headers @{ Authorization = "token $token" }
@@ -48,7 +45,6 @@ function Unfollow-NonFollowers {
         $followingUrl = "https://api.github.com/users/$githubUsername/following?per_page=100"
         $following = Invoke-RestMethod -Uri $followingUrl -Headers @{ Authorization = "token $token" }
 
-        # Get all followers and following by handling pagination
         while ($followers.Links.'next' -ne $null) {
             $nextPageUrl = $followers.Links.'next'
             $nextPage = Invoke-RestMethod -Uri $nextPageUrl -Headers @{ Authorization = "token $token" }
@@ -93,7 +89,6 @@ function Follow-LikelyFollowers {
         $followingUrl = "https://api.github.com/users/$githubUsername/following?per_page=100"
         $following = Invoke-RestMethod -Uri $followingUrl -Headers @{ Authorization = "token $token" }
 
-        # Get all followers and following by handling pagination
         while ($followers.Links.'next' -ne $null) {
             $nextPageUrl = $followers.Links.'next'
             $nextPage = Invoke-RestMethod -Uri $nextPageUrl -Headers @{ Authorization = "token $token" }
@@ -126,7 +121,19 @@ function Follow-LikelyFollowers {
     }
 }
 
-# Main menu
+Write-Host @"
+
+_____   ___   _      _       ___   __    __         ____  __ __  _     _____   ___ 
+|     | /   \ | |    | |     /   \ |  |__|  |       |    \|  |  || |   / ___/  /  _]
+|   __||     || |    | |    |     ||  |  |  | _____ |  o  )  |  || |  (   \_  /  [_ 
+|  |_  |  O  || |___ | |___ |  O  ||  |  |  ||     ||   _/|  |  || |___\__  ||    _]
+|   _] |     ||     ||     ||     ||  `  '  ||_____||  |  |  :  ||     /  \ ||   [_ 
+|  |   |     ||     ||     ||     | \      /        |  |  |     ||     \    ||     |
+|__|    \___/ |_____||_____| \___/   \_/\_/         |__|   \__,_||_____|\___||_____|
+                                                                                    
+       
+"@ -ForegroundColor Green
+
 Write-Host "FollowPulse - GitHub Relationship Manager"
 Write-Host "1. Check Followers and Following"
 Write-Host "2. List People Not Following You Back"
@@ -134,11 +141,9 @@ Write-Host "3. Unfollow Those Not Following You Back"
 Write-Host "4. Follow People Likely to Follow Back"
 $choice = Read-Host "Enter your choice (1-4):"
 
-# GitHub credentials
 $githubUsername = Read-Host "Enter your GitHub username:"
 $token = Read-Host "Enter your GitHub personal access token:"
 
-# Execute based on user choice
 switch ($choice) {
     1 { Check-GitHubRelationships -githubUsername $githubUsername -token $token }
     2 { Check-GitHubRelationships -githubUsername $githubUsername -token $token }
