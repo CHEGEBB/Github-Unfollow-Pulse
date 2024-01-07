@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Relationship Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub Relationship Manager</h1>
+
+        <div class="input-group">
+            <label for="githubUsername">GitHub Username:</label>
+            <input type="text" id="githubUsername" placeholder="Enter GitHub Username">
+        </div>
+
+        <div class="input-group">
+            <label for="githubToken">GitHub Token:</label>
+            <input type="password" id="githubToken" placeholder="Enter GitHub Token">
+        </div>
+<div class="buttons">
+        <button id="checkBtn" onclick="onCheckRelationships()">See Non-Followers<span id="loading" class="loading"></span></button>
+        <button id="unfollowBtn" onclick="unfollowNonFollowers()">Unfollow Non-Followers<span id="loading" class="loading"></span></button>
+        <button id="followBtn" onclick="followLikelyFollowers()">Follow Likely Followers<span id="loading" class="loading"></span></button>
+</div>
+
+        <div class="result-container">
+            <h3>Result:</h3>
+            <textarea id="resultText" readonly></textarea>
+        </div>
+
+        <label class="switch">
+            <input type="checkbox" id="themeToggle" onclick="toggleTheme()">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
