@@ -53,6 +53,7 @@ function get_following {
     echo "$following"
 }
 
+<<<<<<< HEAD
 # Function to unfollow users who don't follow back
 function unfollow_non_followers {
     username=$1
@@ -135,6 +136,97 @@ while true; do
     echo -e "\e[33m6. Exit\e[0m"
 
     read -p "Select an option (1/2/3/4/5/6): " choice
+=======
+# Function to unfollow a user
+function unfollow_user {
+    username=$1
+    token=$2
+
+    # Perform the unfollow operation
+    response=$(curl -s -X DELETE -H "Authorization: token $token" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/user/following/$username")
+
+    if [ -z "$(echo "$response" | jq -r '.message')" ]; then
+        print_color "Successfully unfollowed $username." "success"
+    elif [ "$(echo "$response" | jq -r '.message')" == "Not Found" ] || [ "$(echo "$response" | jq -r '.message')" == "404 Not Found" ]; then
+        print_color "Failed to unfollow $username. User not found or already unfollowed." "error"
+    else
+        print_color "Error unfollowing $username. $(echo "$response" | jq -r '.message')" "error"
+    fi
+}
+
+# Function to unfollow users who don't follow back
+function unfollow_non_followers {
+    username=$1
+    token=$2
+    json_file=$3
+
+    if [ ! -f "$json_file" ]; then
+        print_color "Error: JSON file $json_file not found." "error"
+        return
+    fi
+
+    # Read the list of usernames from the JSON file
+    non_followers=$(cat "$json_file" | jq -r '.[]')
+
+    if [ -z "$non_followers" ]; then
+        print_color "Error: Empty list of usernames in $json_file." "error"
+        return
+    fi
+
+    # Process each user one by one
+    for user in $non_followers; do
+        unfollow_user "$user" "$token"
+    done
+}
+
+# Function to display users you follow but who don't follow you back
+function display_non_followers {
+    username=$1
+    token=$2
+
+    followers=$(get_followers "$username" "$token")
+    following=$(get_following "$username" "$token")
+
+    non_followers=$(comm -23 <(echo "$following" | tr ' ' '\n' | sort) <(echo "$followers" | sort))
+
+    if [ -z "$non_followers" ]; then
+        print_color "You follow everyone who follows you. No one is left out!" "success"
+    else
+        echo -e "\n\e[36mUsers You Follow But Don't Follow You Back:\e[0m"
+        echo "$non_followers"
+        read -p "Do you want to remove these users one by one? (y/n): " remove_users
+
+        if [ "$remove_users" == "y" ]; then
+            # Create a JSON file to store usernames
+            json_file="unfollow_list.json"
+            echo "$non_followers" | jq -R -s -c 'split("\n")' > "$json_file"
+
+            print_color "Usernames stored in $json_file. Now unfollowing users..." "success"
+            unfollow_non_followers "$username" "$token" "$json_file"
+        else
+            print_color "Exiting without removing users. Have a great day!" "success"
+        fi
+    fi
+}
+
+# Main script
+clear
+echo -e "\e[34mGitHub Follower Manager\e[0m"
+
+read -p "Enter your GitHub username: " username
+read -s -p "Enter your GitHub token: " token
+
+while true; do
+    clear
+    echo -e "\e[34mGitHub Follower Manager\e[0m"
+
+    echo -e "\e[33m1. Show GitHub Followers\e[0m"
+    echo -e "\e[33m2. Show Users You Follow\e[0m"
+    echo -e "\e[33m3. Show Users You Follow But Don't Follow You Back\e[0m"
+    echo -e "\e[33m4. Exit\e[0m"
+
+    read -p "Select an option (1/2/3/4): " choice
+>>>>>>> a3da973f04d584576597d92651f4d8df78825d34
 
     case $choice in
         1)
@@ -146,6 +238,7 @@ while true; do
             get_following "$username" "$token"
             ;;
         3)
+<<<<<<< HEAD
             unfollow_non_followers "$username" "$token"
             ;;
         4)
@@ -155,6 +248,11 @@ while true; do
             display_non_following_back "$username" "$token"
             ;;
         6)
+=======
+            display_non_followers "$username" "$token"
+            ;;
+        4)
+>>>>>>> a3da973f04d584576597d92651f4d8df78825d34
             print_color "Exiting. Have a great day!" "success"
             exit 0
             ;;

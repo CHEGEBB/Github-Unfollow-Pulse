@@ -32,6 +32,17 @@ def get_all_pages(client, method, *args)
   result
 end
 
+# ASCII art
+puts <<-'ASCII'
+  _____   ___   _      _       ___   __    __         ____  __ __  _     _____   ___ 
+ |     | /   \ | |    | |     /   \ |  |__|  |       |    \|  |  || |   / ___/  /  _]
+ |   __||     || |    | |    |     ||  |  |  | _____ |  o  )  |  || |  (   \_  /  [_ 
+ |  |_  |  O  || |___ | |___ |  O  ||  |  |  ||     ||   _/|  |  || |___\__  ||    _]
+ |   _] |     ||     ||     ||     ||  `  '  ||_____||  |  |  :  ||     /  \ ||   [_ 
+ |  |   |     ||     ||     ||     | \      /        |  |  |     ||     \    ||     |
+ |__|    \___/ |_____||_____| \___/   \_/\_/         |__|   \__,_||_____|\___||_____|
+ASCII
+
 def check_github_relationships(client, username)
   loading_animation('Loading followers and following...')
   followers = get_all_pages(client, :followers, username)
@@ -74,7 +85,7 @@ def follow_likely_followers(client, username)
   else
     likely_followers.each do |user|
       loading_animation("Attempting to follow #{user.login}...")
-       client.follow(user.login)
+      client.follow(user.login)
       puts "Followed #{user.login}"
     end
   end
