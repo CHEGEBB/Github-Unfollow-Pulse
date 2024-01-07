@@ -5,8 +5,7 @@ import os
 from colorama import Fore, Style
 
 def ui():
-    print("\033c")  # Clear the screen
-    animated_welcome()
+    print("Welcome to the Github FollowPulse")
     print("1. Follow users who are likely to follow back")
     print("2. List followers who are likely to follow back")
     print("3. List mutual connections")
@@ -51,6 +50,11 @@ def get_user_info(username, token):
         print(f"Error getting user info: {response.json().get('message', 'Unknown error')}")
         return {}
 
+def get_followers(username, token):
+    followers_url = f"https://api.github.com/users/{username}/followers?per_page=100"
+    followers = get_all_pages(followers_url, token)
+    return followers
+
 def get_following(username, token):
     following_url = f"https://api.github.com/users/{username}/following?per_page=100"
     following = get_all_pages(following_url, token)
@@ -73,7 +77,7 @@ def follow_likely_followers(username, token):
     followers_info = get_followers_info(username, token)
     following = get_following(username, token)
     not_followed_back = [user for user in following if user["login"] not in [follower["login"] for follower in followers_info]]
-    likely_followers = [follower for follower in followers_info if follower.get("followers", 0) > 2 * follower.get("following", 0)]
+    likely_followers = [follower for follower in followers_info if follower.get("followers", 0) > 100 and follower.get("following", 0) < 100]
     print("\nFollowing people who are likely to follow back:")
 
     if not likely_followers:
@@ -81,7 +85,7 @@ def follow_likely_followers(username, token):
     else:
         for user in likely_followers:
             user_to_follow = user["login"]
-            loading_animation(f"Following {user_to_follow}...")
+            loading_animation(f"Attempting to follow {user_to_follow}...")
             response = requests.put(f"https://api.github.com/user/following/{user_to_follow}", headers={"Authorization": f"token {token}"})
             if response.status_code == 204:
                 print(f"Followed {user_to_follow}")
@@ -147,7 +151,7 @@ def colored_print(text, color):
 def loading_animation(message):
     animation = "|/-\\"
     for i in range(100):
-        time.sleep(0.05)
+        time.sleep(0.1)
         sys.stdout.write("\r" + animation[i % len(animation)] + " " + message)
         sys.stdout.flush()
     print("\r", end="", flush=True)
@@ -160,6 +164,7 @@ def exit_program():
     sys.exit()
 
 def run():
+    animated_welcome()
     while True:
         choice = ui()
         if choice == "1":
