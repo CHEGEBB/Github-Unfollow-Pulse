@@ -32,8 +32,8 @@ def load_from_json(filename):
 def create_markdown_file(filename, unfollowers):
     with open(filename, 'w') as f:
         f.write("## List of Unfollowers\n")
-        for i, user in enumerate(unfollowers, 1):
-            f.write(f"```bash\n{i}. {user}\n```\n")
+        for user in unfollowers:
+            f.write(f"```bash\n{user}\n```\n")
 
 def main():
     # GitHub credentials
@@ -68,8 +68,8 @@ def main():
 
         if choice == "1":
             print("People who don't follow back:")
-            for i, user in enumerate(unfollowers_from_file, 1):
-                print(f"{i}. {user}")
+            for user in unfollowers_from_file:
+                print(f"{user}")
         elif choice == "2":
             if unfollowers_from_file:
                 unfollow_users(github_instance, unfollowers_from_file)
