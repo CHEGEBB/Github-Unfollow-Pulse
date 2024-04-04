@@ -1,3 +1,4 @@
+import os
 import json
 from github import Github
 
@@ -28,6 +29,12 @@ def load_from_json(filename):
     except FileNotFoundError:
         return []
 
+def create_markdown_file(filename, unfollowers):
+    with open(filename, 'w') as f:
+        f.write("## List of Unfollowers\n")
+        for i, user in enumerate(unfollowers, 1):
+            f.write(f"```bash\n{i}. {user}\n```\n")
+
 def main():
     # GitHub credentials
     token = input("Enter your GitHub personal access token: ")
@@ -36,21 +43,51 @@ def main():
     # Initialize PyGithub instance
     github_instance = Github(token)
 
-    # Get unfollowers
-    unfollowers = get_unfollowers(github_instance, username)
-    print("People who don't follow you back:", unfollowers)
-
-    # Save unfollowers to JSON file
-    save_to_json("unfollowers.json", unfollowers)
-
-    # Load unfollowers from JSON file
-    unfollowers_from_file = load_from_json("unfollowers.json")
-
-    # Unfollow unfollowers
-    if unfollowers_from_file:
-        unfollow_users(github_instance, unfollowers_from_file)
+    # Check if JSON file exists
+    json_filename = "unfollowers.json"
+    if os.path.exists(json_filename):
+        print("JSON file found. Loading data...")
+        unfollowers_from_file = load_from_json(json_filename)
     else:
-        print("No unfollowers found in the JSON file.")
+        print("JSON file not found. Finding unfollowers...")
+        # Get unfollowers
+        unfollowers_from_file = get_unfollowers(github_instance, username)
+        # Save unfollowers to JSON file
+        save_to_json(json_filename, unfollowers_from_file)
+        print("Unfollowers saved to JSON file.")
+
+    # Menu
+    while True:
+        print("\nMenu:")
+        print("1. List people who don't follow back")
+        print("2. Unfollow users who don't follow back")
+        print("3. Create Markdown file with unfollowers list")
+        print("4. Exit")
+
+        choice = input("Enter your choice (1-4): ")
+
+        if choice == "1":
+            print("People who don't follow back:")
+            for i, user in enumerate(unfollowers_from_file, 1):
+                print(f"{i}. {user}")
+        elif choice == "2":
+            if unfollowers_from_file:
+                unfollow_users(github_instance, unfollowers_from_file)
+                unfollowers_from_file = []  # Empty the list after unfollowing
+                save_to_json(json_filename, unfollowers_from_file)  # Update JSON file
+            else:
+                print("No unfollowers found in the JSON file.")
+        elif choice == "3":
+            if unfollowers_from_file:
+                create_markdown_file("unfollowers.md", unfollowers_from_file)
+                print("Markdown file 'unfollowers.md' created successfully.")
+            else:
+                print("No unfollowers found in the JSON file.")
+        elif choice == "4":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please enter a number from 1 to 4.")
 
 if __name__ == "__main__":
     main()
