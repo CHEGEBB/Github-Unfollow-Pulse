@@ -97,6 +97,10 @@ print(r"""
 """)
 
 # Main loop
+# Initialize not_followed_back as an empty list
+not_followed_back = []
+
+# Main loop
 while True:
     print("\nFollowPulse - GitHub Relationship Manager")
     print("1. Check Followers and Following")
@@ -116,9 +120,12 @@ while True:
         token = input("Enter your GitHub personal access token: ")
         not_followed_back = check_github_relationships(github_username, token)
     elif choice == "3":
-        github_username = input("Enter your GitHub username: ")
-        token = input("Enter your GitHub personal access token: ")
-        unfollow_non_followers(github_username, token, not_followed_back)
+        if not_followed_back:  # Check if not_followed_back is not empty
+            github_username = input("Enter your GitHub username: ")
+            token = input("Enter your GitHub personal access token: ")
+            unfollow_non_followers(github_username, token, not_followed_back)
+        else:
+            print("Please list people not following you back first (Option 2).")
     elif choice == "4":
         github_username = input("Enter your GitHub username: ")
         token = input("Enter your GitHub personal access token: ")
@@ -128,3 +135,4 @@ while True:
         break
     else:
         colored_print("Invalid choice. Please enter a number from 1 to 5.", Fore.RED)
+
