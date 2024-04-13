@@ -1,19 +1,13 @@
 ## List of Unfollowers
 ```bash
-sarathk73
-```
-```bash
-GROUP-12-COMPUTER-SCIENCE
-```
-```bash
-abdinasir-Tman
+Omar-Tood
 ```
 ```bash
 dantekadagi3
 ```
 ```bash
-miirshe
+armjscom
 ```
 ```bash
-armjscom
+GROUP-12-COMPUTER-SCIENCE
 ```
